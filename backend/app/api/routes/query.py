@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-from app.core.config import settings
 from app.rag.embedder import Embedder
 from app.rag.generator import get_llm_provider
 from app.rag.retriever import Retriever

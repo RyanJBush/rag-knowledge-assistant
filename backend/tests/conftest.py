@@ -1,42 +1,46 @@
-import os
+from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-# Prevent huggingface_hub from making network requests during tests.
-# The model will be created locally with mean pooling, which is sufficient
-# for integration tests that only need consistent embedding dimensions.
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
-os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+# Embedding dimension used by all-MiniLM-L6-v2.
+_EMBED_DIM = 384
+
+
+def _make_mock_st():
+    """Return a MagicMock that behaves like SentenceTransformer for tests."""
+    mock = MagicMock()
+    mock.get_sentence_embedding_dimension.return_value = _EMBED_DIM
+
+    def _encode(texts, **kwargs):
+        n = len(texts) if isinstance(texts, list) else 1
+        return np.random.rand(n, _EMBED_DIM).astype(np.float32)
+
+    mock.encode.side_effect = _encode
+    return mock
 
 
 @pytest.fixture(scope="session", autouse=True)
-def preload_embedder():
-    """Pre-load the embedding model in synchronous (non-async) context.
+def mock_sentence_transformer():
+    """Patch SentenceTransformer globally for the entire test session.
 
-    sentence-transformers network retries interact badly with the anyio event
-    loop used by Starlette's TestClient.  Loading the model once here — before
-    any async context is active — lets huggingface_hub fail gracefully, after
-    which SentenceTransformer falls back to creating a local mean-pooling model.
-    Subsequent calls reuse the cached class-level ``Embedder._model``.
+    This avoids any network I/O (HuggingFace downloads) and the httpx
+    closed-client error that occurs when sentence-transformers retries
+    inside Starlette's async TestClient context.
     """
-    # Temporarily allow network so the fallback model-creation path runs;
-    # then re-enable offline mode so no further network calls are attempted.
-    os.environ.pop("HF_HUB_OFFLINE", None)
-    os.environ.pop("TRANSFORMERS_OFFLINE", None)
-    try:
+    mock_st = _make_mock_st()
+    with patch("sentence_transformers.SentenceTransformer", return_value=mock_st):
+        # Pre-populate the class-level cache so Embedder() never calls the
+        # real SentenceTransformer constructor inside an async context.
         from app.rag.embedder import Embedder
 
-        Embedder()  # populates Embedder._model; network errors are caught internally
-    except Exception:
-        pass
-    finally:
-        os.environ["HF_HUB_OFFLINE"] = "1"
-        os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        Embedder._model = mock_st
+        yield mock_st
 
 
 @pytest.fixture(scope="session")
-def client(preload_embedder):
+def client(mock_sentence_transformer):
     from app.main import app
 
     with TestClient(app) as c:
