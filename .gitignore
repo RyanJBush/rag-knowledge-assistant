@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Backend data (keep .gitkeep)
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+backend/data/vector_store/*
+!backend/data/vector_store/.gitkeep
+backend/data/metadata.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
