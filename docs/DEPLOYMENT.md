@@ -27,7 +27,7 @@ Configure at least:
 - `APP_ENV=production`
 - `API_PREFIX=/api`
 - `LOG_LEVEL=INFO`
-- `CORS_ALLOWED_ORIGINS=https://<your-frontend-domain>` (comma-separate multiple origins, include localhost for local dev as needed)
+- `CORS_ALLOWED_ORIGINS=https://<your-frontend-domain>` (supports comma-separated values or JSON array; include localhost for local dev as needed)
 - `UPLOAD_DIR=backend/data/uploads`
 - `VECTOR_STORE_DIR=backend/data/vector_store`
 - `MAX_UPLOAD_MB=10`

@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 
 from pydantic import Field
@@ -28,7 +29,24 @@ class Settings(BaseSettings):
 
     @property
     def cors_allowed_origins_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
+        raw_value = self.cors_allowed_origins.strip()
+        if not raw_value:
+            return ["http://localhost:5173"]
+
+        if raw_value.startswith("["):
+            try:
+                parsed_value = json.loads(raw_value)
+            except json.JSONDecodeError:
+                parsed_value = None
+            if isinstance(parsed_value, list):
+                parsed_origins = [
+                    str(origin).strip() for origin in parsed_value if str(origin).strip()
+                ]
+                if parsed_origins:
+                    return parsed_origins
+
+        parsed_origins = [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+        return parsed_origins or ["http://localhost:5173"]
 
 
 @lru_cache

@@ -64,7 +64,9 @@ curl -X POST "http://localhost:8000/api/query" \
 Set `VITE_API_BASE_URL` (optional) to point to your backend API base. Default is `http://localhost:8000/api`.
 
 ### Backend CORS env
-Set `CORS_ALLOWED_ORIGINS` to a comma-separated list of allowed frontend origins (for example, `http://localhost:5173,https://your-app.vercel.app`).
+Set `CORS_ALLOWED_ORIGINS` to allowed frontend origins as either:
+- comma-separated values (for example, `http://localhost:5173,https://your-app.vercel.app`), or
+- JSON array (for example, `["http://localhost:5173","https://your-app.vercel.app"]`).
 
 ## Testing
 
