@@ -6,6 +6,11 @@ def chunk_text(
     chunk_size: int = 500,
     chunk_overlap: int = 50,
 ) -> list[dict[str, Any]]:
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than 0")
+    if not 0 <= chunk_overlap < chunk_size:
+        raise ValueError("chunk_overlap must be >= 0 and less than chunk_size")
+
     words = text.split()
     if not words:
         return []
