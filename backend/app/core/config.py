@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_prefix: str = "/api"
     log_level: str = "INFO"
+    cors_allowed_origins: str = "http://localhost:5173"
 
     upload_dir: str = "backend/data/uploads"
     vector_store_dir: str = "backend/data/vector_store"
@@ -24,6 +25,10 @@ class Settings(BaseSettings):
     llm_model: str = "local"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    @property
+    def cors_allowed_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
 
 @lru_cache
